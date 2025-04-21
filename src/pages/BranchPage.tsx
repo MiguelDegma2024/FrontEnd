@@ -1,8 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { Branch } from "my-types";
+import { Branch, Manager } from "my-types";
 import { useState, useEffect } from 'react';
 import { getAllBranches, deleteBranch, getBranchById, createBranch, updateBranch } from "../Api/BranchAPI";
+import { getAllManagers } from "../Api/ManagerAPI"; // Importar la función para obtener managers
 import BranchForm from "../components/BranchForm";
 import BranchDetail from "../components/BranchDetail";
 
@@ -16,6 +17,7 @@ type ModalContent = {
 const BranchPage = (_props: Props) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [filteredBranches, setFilteredBranches] = useState<Branch[]>([]);
+  const [managers, setManagers] = useState<Manager[]>([]); // Estado para managers
   const [modal, setModal] = useState<ModalContent>({ type: 'none' });
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState({ name: '', location: '' });
@@ -35,8 +37,21 @@ const BranchPage = (_props: Props) => {
     }
   };
 
+  // Nueva función para obtener managers
+  const fetchManagers = async () => {
+    try {
+      const data = await getAllManagers();
+      setManagers(data);
+      console.log("Managers cargados:", data.length);
+    } catch (error) {
+      console.error("Error fetching managers:", error);
+      setManagers([]);
+    }
+  };
+
   useEffect(() => {
     fetchBranches();
+    fetchManagers(); // Cargar managers al iniciar
   }, []);
 
   useEffect(() => {
@@ -224,7 +239,12 @@ const BranchPage = (_props: Props) => {
               )}
 
               {(modal.type === 'add' || modal.type === 'edit') && (
-                <BranchForm branch={modal.type === 'edit' ? modal.branch : undefined} onSubmit={handleFormSubmit} onCancel={closeModal} />
+                <BranchForm 
+                  branch={modal.type === 'edit' ? modal.branch : undefined} 
+                  Managers={managers} // Pasamos los managers cargados
+                  onSubmit={handleFormSubmit} 
+                  onCancel={closeModal} 
+                />
               )}
             </section>
           </div>

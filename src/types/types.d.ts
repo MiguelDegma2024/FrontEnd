@@ -4,6 +4,14 @@ declare module "my-types" {
       name: string;
       key?: string;
     }
+
+  
+    export interface Manager {
+    id: number;
+    name: string;
+    email?: string; // opcional, puedes agregar más campos según tu modelo real
+  }
+  
   
     export interface Product {
       id: number;
@@ -22,6 +30,8 @@ declare module "my-types" {
       name: string;
       location: string;
       managerId: number;
+      manager: Manager;
+      
       createdAt?: Date;
       updatedAt?: Date;
     }

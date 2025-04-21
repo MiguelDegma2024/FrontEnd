@@ -1,64 +1,155 @@
 import React, { useState, useEffect } from 'react';
-import { Branch, User } from 'my-types';
+import { Branch, Manager } from 'my-types';
 
 interface BranchFormProps {
   branch?: Branch;
-  users: User[];
+  Managers: Manager[];
   onSubmit: (branchData: Omit<Branch, 'id'>) => void;
   onCancel: () => void;
 }
 
 const BranchForm: React.FC<BranchFormProps> = ({
   branch,
-  users,
+  Managers,
   onSubmit,
   onCancel
 }) => {
-  const defaultManagerId = users && users.length > 0 ? users[0].id : 0;
+  // Verificar si hay managers disponibles
+  const hasManagers = Array.isArray(Managers) && Managers.length > 0;
+  
+  // Solo usar un manager por defecto si hay disponibles
+  const defaultManager = hasManagers ? Managers[0] : null;
+  const defaultManagerId = defaultManager ? defaultManager.id : 0;
 
   const [formData, setFormData] = useState<Omit<Branch, 'id'>>({
     name: '',
     location: '',
     managerId: defaultManagerId,
+    manager: defaultManager as Manager,
+  });
+  
+  // Estado para manejar errores de validación
+  const [formErrors, setFormErrors] = useState({
+    name: '',
+    location: '',
+    managerId: ''
   });
 
   useEffect(() => {
     if (branch) {
       const { id, ...branchData } = branch;
+      
+      // Buscar el manager en la lista de managers disponibles
+      let selectedManager = null;
+      
+      if (branch.manager) {
+        // Si el branch ya tiene un manager, intentamos encontrarlo en la lista
+        selectedManager = Managers.find(m => m.id === branch.manager?.id) || null;
+      } 
+      
+      if (!selectedManager && branch.managerId) {
+        // Si no encontramos el manager pero tenemos el ID, buscamos por ID
+        selectedManager = Managers.find(m => m.id === branch.managerId) || null;
+      }
+      
+      // Si aún no tenemos manager pero hay managers disponibles, usamos el primero
+      if (!selectedManager && hasManagers) {
+        selectedManager = defaultManager;
+      }
+      
       setFormData({
         name: branchData.name || '',
         location: branchData.location || '',
-        managerId: branchData.managerId || defaultManagerId,
+        managerId: selectedManager ? selectedManager.id : defaultManagerId,
+        manager: selectedManager as Manager,
       });
     }
-  }, [branch, defaultManagerId]);
+  }, [branch, Managers, defaultManager, defaultManagerId, hasManagers]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    
+    // Limpiar el error al cambiar el campo
+    setFormErrors(prev => ({
       ...prev,
-      [name]: name === 'managerId' ? Number(value) : value
+      [name]: ''
     }));
+    
+    if (name === 'managerId') {
+      const managerId = Number(value);
+      const selectedManager = Managers.find(m => m.id === managerId) || null;
+      
+      setFormData(prev => ({
+        ...prev,
+        managerId,
+        manager: selectedManager as Manager,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    let isValid = true;
+    const errors = {
+      name: '',
+      location: '',
+      managerId: ''
+    };
+    
+    if (!formData.name.trim()) {
+      errors.name = 'El nombre es obligatorio';
+      isValid = false;
+    }
+    
+    if (!formData.location.trim()) {
+      errors.location = 'La ubicación es obligatoria';
+      isValid = false;
+    }
+    
+    if (!formData.managerId) {
+      errors.managerId = 'Debe seleccionar un encargado';
+      isValid = false;
+    }
+    
+    setFormErrors(errors);
+    return isValid;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    if (validateForm()) {
+      // Si es válido, enviar los datos
+      onSubmit(formData);
+    }
   };
 
-  const validUsers = users.filter(user => user && user.id && user.name);
+  // Verificar qué managers están disponibles para debug
+  const validManagers = Array.isArray(Managers) ? 
+    Managers.filter(manager => manager && manager.id && manager.name) : [];
 
   return (
     <div className="box">
       <h2 className="title is-4">{branch ? 'Editar Sucursal' : 'Añadir Nueva Sucursal'}</h2>
+      
+      {!hasManagers && (
+        <div className="notification is-warning">
+          <p>No hay encargados disponibles. Debes crear un encargado antes de poder crear sucursales.</p>
+        </div>
+      )}
+      
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label className="label">Nombre</label>
           <div className="control">
             <input
-              className="input"
+              className={`input ${formErrors.name ? 'is-danger' : ''}`}
               type="text"
               name="name"
               value={formData.name}
@@ -66,13 +157,14 @@ const BranchForm: React.FC<BranchFormProps> = ({
               required
             />
           </div>
+          {formErrors.name && <p className="help is-danger">{formErrors.name}</p>}
         </div>
 
         <div className="field">
           <label className="label">Ubicación</label>
           <div className="control">
             <input
-              className="input"
+              className={`input ${formErrors.location ? 'is-danger' : ''}`}
               type="text"
               name="location"
               value={formData.location}
@@ -80,35 +172,42 @@ const BranchForm: React.FC<BranchFormProps> = ({
               required
             />
           </div>
+          {formErrors.location && <p className="help is-danger">{formErrors.location}</p>}
         </div>
 
         <div className="field">
           <label className="label">Encargado</label>
           <div className="control">
-            <div className="select is-fullwidth">
+            <div className={`select is-fullwidth ${formErrors.managerId ? 'is-danger' : ''}`}>
               <select
                 name="managerId"
                 value={formData.managerId}
                 onChange={handleChange}
                 required
+                disabled={!hasManagers}
               >
-                {validUsers.length === 0 ? (
-                  <option value="">No hay usuarios disponibles</option>
+                {validManagers.length === 0 ? (
+                  <option value="">No hay encargados disponibles</option>
                 ) : (
-                  validUsers.map(user => (
-                    <option key={`user-${user.id}`} value={user.id}>
-                      {user.name}
+                  validManagers.map(manager => (
+                    <option key={`manager-${manager.id}`} value={manager.id}>
+                      {manager.name}
                     </option>
                   ))
                 )}
               </select>
             </div>
           </div>
+          {formErrors.managerId && <p className="help is-danger">{formErrors.managerId}</p>}
         </div>
 
         <div className="field is-grouped mt-5">
           <div className="control">
-            <button type="submit" className="button is-primary">
+            <button 
+              type="submit" 
+              className="button is-primary"
+              disabled={!hasManagers}
+            >
               {branch ? 'Actualizar' : 'Crear'}
             </button>
           </div>

@@ -52,8 +52,10 @@ export const createBranch = async (branchData: Omit<Branch, "id">) => {
 // UPDATE BRANCH
 export const updateBranch = async (id: number, branchData: Partial<Branch>) => {
   try {
+    // Eliminamos la propiedad manager y cualquier propiedad undefined o null
+    const { manager, ...rest } = branchData;
     const cleanData = Object.fromEntries(
-      Object.entries(branchData).filter(([_, v]) => v !== null && v !== undefined)
+      Object.entries(rest).filter(([_, v]) => v !== null && v !== undefined)
     );
 
     console.log(`Updating branch ${id} with data:`, cleanData);

@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faTrash, faPlus , faEye} from "@fortawesome/free-solid-svg-icons";
 import { User } from "my-types"; // Asegúrate de importar el tipo User
 import { useState, useEffect } from 'react';
 import { getAllUsers, deleteUser, getUserById, createUser, updateUser } from "../Api/UserAPI"; // Asegúrate de tener estos métodos
@@ -284,6 +284,14 @@ const UserPage = (_props: Props) => {
                       <td>{user.role}</td>
                       <td>
                         <div className="buttons are-small">
+
+                        <button
+                          className="button is-info"
+                          onClick={() => handleViewUser(user.id)}
+                          title="Ver detalles"
+                        >
+                            <FontAwesomeIcon icon={faEye} />
+                          </button>
                           <button
                             className="button is-warning"
                             onClick={() => handleEditUser(user.id)}
