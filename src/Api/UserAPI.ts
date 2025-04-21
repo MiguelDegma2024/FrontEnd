@@ -5,14 +5,13 @@ import { User } from "my-types";
 export const getAllUsers = async () => {
   try {
     const res = await api.get(`/user`);
-    // Verificar que la respuesta tenga la estructura esperada
     if (res.data && res.data.payload) {
       const users: User[] = res.data.payload;
-      return users.filter(u => u && typeof u === 'object'); // Filtrar elementos no válidos
+      return users.filter(u => u && typeof u === 'object');
     }
     console.error("Formato inesperado en getAllUsers:", res);
     return [];
-  } catch (err: any) { // Type the error as 'any' to allow property access
+  } catch (err: any) {
     console.error("Error en getAllUsers:", err);
     return [];
   }
@@ -22,12 +21,11 @@ export const getAllUsers = async () => {
 export const getUserById = async (id: number) => {
   try {
     const res = await api.get(`/user/${id}`);
-    // Verificar que la respuesta tenga la estructura esperada
     if (res.data && res.data.payload) {
       return res.data.payload;
     }
     throw new Error("Formato de respuesta inesperado");
-  } catch (err: any) { // Type the error as 'any' to allow property access
+  } catch (err: any) {
     console.error(`Error al obtener usuario ${id}:`, err);
     throw err;
   }
@@ -36,17 +34,16 @@ export const getUserById = async (id: number) => {
 // CREATE USER
 export const createUser = async (userData: Omit<User, 'id'>) => {
   try {
-    // Eliminamos cualquier propiedad undefined o null
     const cleanData = Object.fromEntries(
       Object.entries(userData).filter(([_, v]) => v !== null && v !== undefined)
     );
-    
+
     const res = await api.post('/user', cleanData);
     if (res.data && res.data.payload) {
       return res.data.payload;
     }
     throw new Error("Formato de respuesta inesperado");
-  } catch (err: any) { // Type the error as 'any' to allow property access
+  } catch (err: any) {
     console.error("Error al crear usuario:", err);
     throw err;
   }
@@ -55,22 +52,16 @@ export const createUser = async (userData: Omit<User, 'id'>) => {
 // UPDATE USER
 export const updateUser = async (id: number, userData: Partial<User>) => {
   try {
-    // Eliminamos cualquier propiedad undefined o null
     const cleanData = Object.fromEntries(
       Object.entries(userData).filter(([_, v]) => v !== null && v !== undefined)
     );
-    
-    console.log(`Updating user ${id} with data:`, cleanData);
-    
+
     const res = await api.patch(`/user/${id}`, cleanData);
-    console.log("Update response:", res.data);
-    
     if (res.data && res.data.payload) {
       return res.data.payload;
     }
     throw new Error("Formato de respuesta inesperado");
-  } catch (err: any) { // Type the error as 'any' to allow property access
-    // More detailed error logging
+  } catch (err: any) {
     if (err.response) {
       console.error(`Error al actualizar usuario ${id}:`, {
         status: err.response.status,
@@ -88,9 +79,9 @@ export const updateUser = async (id: number, userData: Partial<User>) => {
 // DELETE USER
 export const deleteUser = async (id: number) => {
   try {
-    await api.delete('/user', { data: { id } }); // Enviar el ID en el cuerpo
+    await api.delete('/user', { data: { id } });
     return true;
-  } catch (err: any) { // Type the error as 'any' to allow property access
+  } catch (err: any) {
     console.error(`Error al eliminar usuario ${id}:`, err);
     throw err;
   }

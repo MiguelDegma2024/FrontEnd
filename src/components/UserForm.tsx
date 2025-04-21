@@ -7,27 +7,21 @@ interface UserFormProps {
   onCancel: () => void;
 }
 
-const UserForm: React.FC<UserFormProps> = ({
-  user,
-  onSubmit,
-  onCancel
-}) => {
+const UserForm: React.FC<UserFormProps> = ({ user, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<Omit<User, 'id'>>({
     name: '',
     email: '',
     password: '',
-    role: 'user'
+    role: 'user', // Definimos un valor por defecto para el rol
   });
 
   useEffect(() => {
     if (user) {
-      // Aseguramos que todos los campos tengan valores válidos
-      const { id, ...userData } = user;
       setFormData({
-        name: userData.name || '',
-        email: userData.email || '',
-        password: '', // No mostramos la contraseña existente por seguridad
-        role: userData.role || 'user'
+        name: user.name || '',
+        email: user.email || '',
+        password: user.password || '',
+        role: user.role || 'user',
       });
     }
   }, [user]);
@@ -38,20 +32,13 @@ const UserForm: React.FC<UserFormProps> = ({
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Si estamos editando y no se ha cambiado la contraseña, no la enviamos
-    if (user && !formData.password) {
-      const { password, ...dataWithoutPassword } = formData;
-      onSubmit(dataWithoutPassword as Omit<User, 'id'>);
-    } else {
-      onSubmit(formData);
-    }
+    onSubmit(formData);
   };
 
   return (
@@ -87,9 +74,7 @@ const UserForm: React.FC<UserFormProps> = ({
         </div>
 
         <div className="field">
-          <label className="label">
-            {user ? 'Nueva Contraseña (dejar en blanco para mantener la actual)' : 'Contraseña'}
-          </label>
+          <label className="label">Contraseña</label>
           <div className="control">
             <input
               className="input"
@@ -97,7 +82,7 @@ const UserForm: React.FC<UserFormProps> = ({
               name="password"
               value={formData.password || ''}
               onChange={handleChange}
-              required={!user}
+              required
             />
           </div>
         </div>
@@ -106,14 +91,14 @@ const UserForm: React.FC<UserFormProps> = ({
           <label className="label">Rol</label>
           <div className="control">
             <div className="select is-fullwidth">
-              <select 
-                name="role" 
+              <select
+                name="role"
                 value={formData.role || 'user'}
                 onChange={handleChange}
                 required
               >
-                <option value="user">Usuario</option>
                 <option value="admin">Administrador</option>
+                <option value="user">Usuario</option>
               </select>
             </div>
           </div>
@@ -126,8 +111,8 @@ const UserForm: React.FC<UserFormProps> = ({
             </button>
           </div>
           <div className="control">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="button is-light"
               onClick={onCancel}
             >
