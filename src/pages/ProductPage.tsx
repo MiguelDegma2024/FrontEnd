@@ -186,7 +186,8 @@ const ProductPage = (_props: Props) => {
         await createProduct({ ...productData, category });
         alert("Producto creado con éxito");
       } else if (modal.type === 'edit' && modal.product) {
-        await updateProduct(modal.product.id, { ...productData, category: undefined });
+        // Don't manually set category to undefined here, your API function already handles this
+        await updateProduct(modal.product.id, productData);
         alert("Producto actualizado con éxito");
       }
       closeModal();
@@ -196,7 +197,6 @@ const ProductPage = (_props: Props) => {
       alert(`Error al ${modal.type === 'add' ? 'crear' : 'actualizar'} el producto`);
     }
   };
-
   // Safe rendering helpers
   const renderProductTitle = (product: Product) => {
     return product && product.title ? product.title : 'Sin título';

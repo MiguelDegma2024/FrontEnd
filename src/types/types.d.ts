@@ -5,6 +5,7 @@ declare module "my-types" {
     id: number;
     
     name: string;
+    key?: string;
     
     }
     
