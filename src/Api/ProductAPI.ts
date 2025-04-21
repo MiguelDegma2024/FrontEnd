@@ -12,7 +12,7 @@ export const getAllProducts = async () => {
     }
     console.error("Formato inesperado en getAllProducts:", res);
     return [];
-  } catch (err) {
+  } catch (err: any) { // Type the error as 'any' to allow property access
     console.error("Error en getAllProducts:", err);
     return [];
   }
@@ -27,7 +27,7 @@ export const getProductById = async (id: number) => {
       return res.data.payload;
     }
     throw new Error("Formato de respuesta inesperado");
-  } catch (err) {
+  } catch (err: any) { // Type the error as 'any' to allow property access
     console.error(`Error al obtener producto ${id}:`, err);
     throw err;
   }
@@ -46,13 +46,12 @@ export const createProduct = async (productData: Omit<Product, 'id'>) => {
       return res.data.payload;
     }
     throw new Error("Formato de respuesta inesperado");
-  } catch (err) {
+  } catch (err: any) { // Type the error as 'any' to allow property access
     console.error("Error al crear producto:", err);
     throw err;
   }
 };
 
-// UPDATE PRODUCT
 export const updateProduct = async (id: number, productData: Partial<Product>) => {
   try {
     // Eliminamos la propiedad category y cualquier propiedad undefined o null
@@ -61,22 +60,37 @@ export const updateProduct = async (id: number, productData: Partial<Product>) =
       Object.entries(rest).filter(([_, v]) => v !== null && v !== undefined)
     );
     
-    const res = await api.put(`/product/${id}`, cleanData);
+    console.log(`Updating product ${id} with data:`, cleanData);
+    
+    const res = await api.patch(`/product/${id}`, cleanData);
+    console.log("Update response:", res.data);
+    
     if (res.data && res.data.payload) {
       return res.data.payload;
     }
     throw new Error("Formato de respuesta inesperado");
-  } catch (err) {
-    console.error(`Error al actualizar producto ${id}:`, err);
+  } catch (err: any) { // Type the error as 'any' to allow property access
+    // More detailed error logging
+    if (err.response) {
+      console.error(`Error al actualizar producto ${id}:`, {
+        status: err.response.status,
+        statusText: err.response.statusText,
+        data: err.response.data,
+        url: err.response.config?.url
+      });
+    } else {
+      console.error(`Error al actualizar producto ${id}:`, err.message || err);
+    }
     throw err;
   }
 };
 
+//DELETE PRODUCT
 export const deleteProduct = async (id: number) => {
   try {
     await api.delete('/product', { data: { id } }); // Enviar el ID en el cuerpo
     return true;
-  } catch (err) {
+  } catch (err: any) { // Type the error as 'any' to allow property access
     console.error(`Error al eliminar producto ${id}:`, err);
     throw err;
   }
