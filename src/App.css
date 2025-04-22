@@ -1,6 +1,112 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.app-container {
+  display: flex;
+  min-height: 100vh;
 }
 
+.sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+}
+
+.sidebar-header {
+  margin-bottom: 2rem;
+}
+
+.sidebar .menu-label {
+  color: #8c9eff;
+  font-size: 1.25rem;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+}
+
+.sidebar .menu-list a {
+  color: #f5f5f5;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.sidebar .menu-list a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  color: white;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 250px;
+  padding: 2rem;
+  background-color: #f0f2f5;
+}
+
+/* Add these styles for the Dashboard */
+.card {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  margin-bottom: 1.5rem;
+  background-color: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  background-color: #fff;
+  box-shadow: none;
+  border-bottom: 1px solid #eee;
+}
+
+.card-header-title {
+  color: #333;
+}
+
+.icon-background {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Add Bulma color utilities if you're not importing Bulma directly */
+.has-background-primary { background-color: #6366f1; }
+.has-background-info { background-color: #3e8ed0; }
+.has-background-success { background-color: #48c78e; }
+.has-background-warning { background-color: #ffe08a; }
+
+.has-text-primary-dark { color: #4338ca; }
+.has-text-info-dark { color: #296fa8; }
+.has-text-success-dark { color: #257942; }
+.has-text-warning-dark { color: #946c00; }
+
+.is-rounded { border-radius: 9999px; }
