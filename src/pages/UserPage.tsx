@@ -1,8 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash, faPlus , faEye} from "@fortawesome/free-solid-svg-icons";
-import { User } from "my-types"; // Asegúrate de importar el tipo User
+import { faEdit, faTrash, faPlus, faEye, faUser, faEnvelope, faUserTag, faFilter } from "@fortawesome/free-solid-svg-icons";
+import { User } from "my-types";
 import { useState, useEffect } from 'react';
-import { getAllUsers, deleteUser, getUserById, createUser, updateUser } from "../Api/UserAPI"; // Asegúrate de tener estos métodos
+import { getAllUsers, deleteUser, getUserById, createUser, updateUser } from "../Api/UserAPI";
 import UserForm from "../components/UserForm";
 import UserDetail from "../components/UserDetail";
 
@@ -18,6 +18,7 @@ const UserPage = (_props: Props) => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [modal, setModal] = useState<ModalContent>({ type: 'none' });
   const [loading, setLoading] = useState<boolean>(true);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState({
     name: '',
     email: '',
@@ -82,7 +83,7 @@ const UserPage = (_props: Props) => {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
       try {
         await deleteUser(id);
         setUsers(users.filter(u => u.id !== id));
@@ -143,216 +144,264 @@ const UserPage = (_props: Props) => {
     }
   };
 
+  const getRoleBadgeClass = (role: string) => {
+    switch(role.toLowerCase()) {
+      case 'admin':
+        return 'tag is-warning';
+      case 'user':
+        return 'tag is-info';
+      default:
+        return 'tag is-light';
+    }
+  };
+
   return (
-    <>
-      <nav className="panel">
-        <p className="panel-heading">Todos los Usuarios</p>
-        
-        <div className="panel-block">
-          <button 
-            className="button is-primary is-fullwidth"
-            onClick={handleAddUser}
-          >
-            <span className="icon">
-              <FontAwesomeIcon icon={faPlus} />
+    <div className="fade-in">
+      <div className="card">
+        <header className="card-header">
+          <p className="card-header-title">
+            <span className="icon-background has-background-success mr-3">
+              <FontAwesomeIcon icon={faUser} size="lg" className="has-text-white" />
             </span>
-            <span>Añadir Nuevo Usuario</span>
-          </button>
-        </div>
-
-        <div className="panel-block">
-          <h2 className="subtitle is-5 mb-0">Filtrar Usuarios</h2>
-        </div>
-
-        <div className="panel-block">
-          <div className="field is-grouped is-flex-wrap-wrap is-flex-grow-1">
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Nombre</label>
-              <div className="control">
-                <input
-                  className="input"
-                  type="text"
-                  name="name"
-                  value={filter.name}
-                  onChange={handleFilterChange}
-                  placeholder="Filtrar por nombre"
-                />
-              </div>
+            Gestión de Usuarios
+          </p>
+        </header>
+        
+        <div className="card-content">
+          <div className="columns">
+            <div className="column">
+              <button 
+                className="button is-primary is-fullwidth"
+                onClick={handleAddUser}
+              >
+                <span className="icon">
+                  <FontAwesomeIcon icon={faPlus} />
+                </span>
+                <span>Añadir Nuevo Usuario</span>
+              </button>
             </div>
-
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Email</label>
-              <div className="control">
-                <input
-                  className="input"
-                  type="text"
-                  name="email"
-                  value={filter.email}
-                  onChange={handleFilterChange}
-                  placeholder="Filtrar por email"
-                />
-              </div>
+            <div className="column">
+              <button 
+                className="button is-info is-fullwidth" 
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <span className="icon"><FontAwesomeIcon icon={faFilter} /></span>
+                <span>{showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}</span>
+              </button>
             </div>
+          </div>
 
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Rol</label>
-              <div className="control">
-                <div className="select is-fullwidth">
-                  <select 
-                    name="role"
-                    value={filter.role}
-                    onChange={handleFilterChange}
-                  >
-                    <option value="">Todos los roles</option>
-                    <option value="admin">Administrador</option>
-                    <option value="user">Usuario</option>
-                  </select>
+          {showFilters && (
+            <div className="box mt-4 mb-5">
+              <h2 className="subtitle is-5 mb-3">Filtrar Usuarios</h2>
+              <div className="columns">
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Nombre</label>
+                    <div className="control has-icons-left">
+                      <input
+                        className="input"
+                        type="text"
+                        name="name"
+                        value={filter.name}
+                        onChange={handleFilterChange}
+                        placeholder="Filtrar por nombre"
+                      />
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faUser} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Email</label>
+                    <div className="control has-icons-left">
+                      <input
+                        className="input"
+                        type="text"
+                        name="email"
+                        value={filter.email}
+                        onChange={handleFilterChange}
+                        placeholder="Filtrar por email"
+                      />
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faEnvelope} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Rol</label>
+                    <div className="control has-icons-left">
+                      <div className="select is-fullwidth">
+                        <select 
+                          name="role"
+                          value={filter.role}
+                          onChange={handleFilterChange}
+                        >
+                          <option value="">Todos los roles</option>
+                          <option value="admin">Administrador</option>
+                          <option value="user">Usuario</option>
+                        </select>
+                      </div>
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faUserTag} />
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <div className="buttons mt-3">
+                <button 
+                  className="button is-info"
+                  onClick={() => setFilteredUsers(users)}
+                >
+                  Aplicar Filtros
+                </button>
+                <button 
+                  className="button is-light"
+                  onClick={resetFilters}
+                >
+                  Limpiar Filtros
+                </button>
+              </div>
             </div>
+          )}
+
+          <div className="notification is-light is-info is-flex is-justify-content-space-between">
+            <span>Total de usuarios: <strong>{filteredUsers.length || 0}</strong></span>
+            {(filter.name || filter.email || filter.role) ? (
+              <span>
+                Filtrando por: 
+                {filter.name ? ` Nombre: "${filter.name}"` : ''} 
+                {filter.name && (filter.email || filter.role) ? ' y ' : ''} 
+                {filter.email ? ` Email: "${filter.email}"` : ''}
+                {(filter.name || filter.email) && filter.role ? ' y ' : ''} 
+                {filter.role ? ` Rol: "${filter.role}"` : ''}
+              </span>
+            ) : (
+              <span>Mostrando todos los usuarios</span>
+            )}
           </div>
-        </div>
 
-        <div className="panel-block">
-          <div className="buttons">
-            <button 
-              className="button is-link"
-              onClick={() => setFilteredUsers(users)}
-            >
-              Aplicar Filtros
-            </button>
-            <button 
-              className="button is-light"
-              onClick={resetFilters}
-            >
-              Limpiar Filtros
-            </button>
-          </div>
-        </div>
-
-        <div className="panel-block">
-          <h2 className="subtitle is-5 mb-0">
-            Resultados ({filteredUsers.length || 0})
-          </h2>
-        </div>
-
-        <div className="panel-block">
           {loading ? (
-            <div className="is-flex is-justify-content-center is-align-items-center is-flex-grow-1 py-5">
+            <div className="is-flex is-justify-content-center is-align-items-center py-6">
               <span className="loader"></span>
             </div>
           ) : (
-            <table className="table is-hoverable is-fullwidth">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Rol</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tfoot>
-                <tr>
-                  <th>#</th>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Rol</th>
-                  <th>Acciones</th>
-                </tr>
-              </tfoot>
-              <tbody>
-                {!filteredUsers || filteredUsers.length === 0 ? (
+            <div className="table-container">
+              <table className="table is-hoverable is-fullwidth">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="has-text-centered">
-                      No se encontraron usuarios
-                    </td>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
                   </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr key={user.id}>
-                      <th>{user.id}</th>
-                      <td>
-                        <button 
-                          className="button is-ghost p-0"
-                          onClick={() => handleViewUser(user.id)}
-                        >
-                          {user.name}
-                        </button>
-                      </td>
-                      <td>{user.email}</td>
-                      <td>{user.role}</td>
-                      <td>
-                        <div className="buttons are-small">
-
-                        <button
-                          className="button is-info"
-                          onClick={() => handleViewUser(user.id)}
-                          title="Ver detalles"
-                        >
-                            <FontAwesomeIcon icon={faEye} />
-                          </button>
-                          <button
-                            className="button is-warning"
-                            onClick={() => handleEditUser(user.id)}
-                            title="Editar usuario"
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </button>
-                          <button
-                            className="button is-danger"
-                            onClick={() => handleDelete(user.id)}
-                            title="Eliminar usuario"
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button>
-                        </div>
+                </thead>
+                <tbody>
+                  {!filteredUsers || filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="has-text-centered py-5">
+                        <p className="has-text-grey">No se encontraron usuarios</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <tr key={user.id}>
+                        <th>{user.id}</th>
+                        <td>
+                          <button 
+                            className="button is-ghost p-0 has-text-success-dark"
+                            onClick={() => handleViewUser(user.id)}
+                          >
+                            {user.name}
+                          </button>
+                        </td>
+                        <td>{user.email}</td>
+                        <td>
+                          <span className={getRoleBadgeClass(user.role)}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="buttons are-small">
+                            <button
+                              className="button is-info is-rounded"
+                              onClick={() => handleViewUser(user.id)}
+                              title="Ver detalles"
+                            >
+                              <FontAwesomeIcon icon={faEye} />
+                            </button>
+                            <button
+                              className="button is-warning is-rounded"
+                              onClick={() => handleEditUser(user.id)}
+                              title="Editar usuario"
+                            >
+                              <FontAwesomeIcon icon={faEdit} />
+                            </button>
+                            <button
+                              className="button is-danger is-rounded"
+                              onClick={() => handleDelete(user.id)}
+                              title="Eliminar usuario"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </nav>
+      </div>
 
+      {/* Modals */}
       {modal.type !== 'none' && (
         <div className="modal is-active">
           <div className="modal-background" onClick={closeModal}></div>
           <div className="modal-card">
             <header className="modal-card-head">
               <p className="modal-card-title">
-                {modal.type === 'view' ? 'Detalles del Usuario' : 
-                 modal.type === 'add' ? 'Añadir Usuario' : 'Editar Usuario'}
-              </p>
-              <button 
-                className="delete" 
-                aria-label="close"
-                onClick={closeModal}
-              ></button>
-            </header>
-            <section className="modal-card-body">
-              {modal.type === 'view' && modal.user && (
-                <UserDetail 
-                  user={modal.user} 
-                  onClose={closeModal} 
-                />
-              )}
-
-              {(modal.type === 'add' || modal.type === 'edit') && (
-                <UserForm
-                  user={modal.type === 'edit' ? modal.user : undefined}
-                  onSubmit={handleFormSubmit}
-                  onCancel={closeModal}
-                />
-              )}
-            </section>
+                {modal.type === 'view' ? 'Detalles del Usuario' :
+                modal.type === 'add' ? 'Añadir Usuario' : 'Editar Usuario'}
+                </p>
+                <button 
+                  className="delete" 
+                  aria-label="close"
+                  onClick={closeModal}
+                ></button>
+              </header>
+              <section className="modal-card-body">
+                {modal.type === 'view' && modal.user && (
+                  <UserDetail 
+                    user={modal.user} 
+                    onClose={closeModal} 
+                  />
+                )}
+  
+                {(modal.type === 'add' || modal.type === 'edit') && (
+                  <UserForm
+                    user={modal.type === 'edit' ? modal.user : undefined}
+                    onSubmit={handleFormSubmit}
+                    onCancel={closeModal}
+                  />
+                )}
+              </section>
+            </div>
           </div>
-        </div>
-      )}
-    </>
-  );
-};
-
-export default UserPage;
+        )}
+      </div>
+    );
+  };
+  
+  export default UserPage;

@@ -1,9 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faEdit, faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faEdit, faEye, faTrash, faBuilding, faMapMarkerAlt, faFilter } from "@fortawesome/free-solid-svg-icons";
 import { Branch, Manager } from "my-types";
 import { useState, useEffect } from 'react';
 import { getAllBranches, deleteBranch, getBranchById, createBranch, updateBranch } from "../Api/BranchAPI";
-import { getAllManagers } from "../Api/ManagerAPI"; // Importar la función para obtener managers
+import { getAllManagers } from "../Api/ManagerAPI";
 import BranchForm from "../components/BranchForm";
 import BranchDetail from "../components/BranchDetail";
 
@@ -17,10 +17,11 @@ type ModalContent = {
 const BranchPage = (_props: Props) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [filteredBranches, setFilteredBranches] = useState<Branch[]>([]);
-  const [managers, setManagers] = useState<Manager[]>([]); // Estado para managers
+  const [managers, setManagers] = useState<Manager[]>([]);
   const [modal, setModal] = useState<ModalContent>({ type: 'none' });
   const [loading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState({ name: '', location: '' });
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   const fetchBranches = async () => {
     setLoading(true);
@@ -37,12 +38,10 @@ const BranchPage = (_props: Props) => {
     }
   };
 
-  // Nueva función para obtener managers
   const fetchManagers = async () => {
     try {
       const data = await getAllManagers();
       setManagers(data);
-      console.log("Managers cargados:", data.length);
     } catch (error) {
       console.error("Error fetching managers:", error);
       setManagers([]);
@@ -51,7 +50,7 @@ const BranchPage = (_props: Props) => {
 
   useEffect(() => {
     fetchBranches();
-    fetchManagers(); // Cargar managers al iniciar
+    fetchManagers();
   }, []);
 
   useEffect(() => {
@@ -80,7 +79,7 @@ const BranchPage = (_props: Props) => {
   const handleAddBranch = () => setModal({ type: 'add' });
 
   const handleDelete = async (id: number) => {
-    if (confirm("¿Estás seguro de que deseas eliminar esta rama?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar esta rama?")) {
       try {
         await deleteBranch(id);
         setBranches(branches.filter(b => b.id !== id));
@@ -126,101 +125,155 @@ const BranchPage = (_props: Props) => {
   };
 
   return (
-    <>
-      <nav className="panel">
-        <p className="panel-heading">Todas las Ramas</p>
+    <div className="fade-in">
+      <div className="card">
+        <header className="card-header">
+          <p className="card-header-title">
+            <span className="icon-background has-background-primary mr-3">
+              <FontAwesomeIcon icon={faBuilding} size="lg" className="has-text-white" />
+            </span>
+            Gestión de Sucursales
+          </p>
+        </header>
         
-        <div className="panel-block">
-          <button className="button is-primary is-fullwidth" onClick={handleAddBranch}>
-            <span className="icon"><FontAwesomeIcon icon={faPlus} /></span>
-            <span>Añadir Nueva Rama</span>
-          </button>
-        </div>
-
-        <div className="panel-block">
-          <h2 className="subtitle is-5 mb-0">Filtrar Ramas</h2>
-        </div>
-
-        <div className="panel-block">
-          <div className="field is-grouped is-flex-wrap-wrap is-flex-grow-1">
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Nombre</label>
-              <div className="control">
-                <input className="input" type="text" name="name" value={filter.name} onChange={handleFilterChange} placeholder="Filtrar por nombre" />
-              </div>
+        <div className="card-content">
+          <div className="columns">
+            <div className="column">
+              <button 
+                className="button is-primary is-fullwidth" 
+                onClick={handleAddBranch}
+              >
+                <span className="icon"><FontAwesomeIcon icon={faPlus} /></span>
+                <span>Añadir Nueva Rama</span>
+              </button>
             </div>
-
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Ubicación</label>
-              <div className="control">
-                <input className="input" type="text" name="location" value={filter.location} onChange={handleFilterChange} placeholder="Filtrar por ubicación" />
-              </div>
+            <div className="column">
+              <button 
+                className="button is-info is-fullwidth" 
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <span className="icon"><FontAwesomeIcon icon={faFilter} /></span>
+                <span>{showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}</span>
+              </button>
             </div>
           </div>
-        </div>
 
-        <div className="panel-block">
-          <div className="buttons">
-            <button className="button is-link" onClick={() => setFilteredBranches(branches)}>Aplicar Filtros</button>
-            <button className="button is-light" onClick={() => setFilter({ name: '', location: '' })}>Limpiar Filtros</button>
+          {showFilters && (
+            <div className="box mt-4 mb-5">
+              <h2 className="subtitle is-5 mb-3">Filtrar Ramas</h2>
+              <div className="columns">
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Nombre</label>
+                    <div className="control has-icons-left">
+                      <input 
+                        className="input" 
+                        type="text" 
+                        name="name" 
+                        value={filter.name} 
+                        onChange={handleFilterChange} 
+                        placeholder="Filtrar por nombre" 
+                      />
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faBuilding} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Ubicación</label>
+                    <div className="control has-icons-left">
+                      <input 
+                        className="input" 
+                        type="text" 
+                        name="location" 
+                        value={filter.location} 
+                        onChange={handleFilterChange} 
+                        placeholder="Filtrar por ubicación" 
+                      />
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faMapMarkerAlt} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="buttons mt-3">
+                <button className="button is-info" onClick={() => setFilteredBranches(branches)}>
+                  Aplicar Filtros
+                </button>
+                <button className="button is-light" onClick={() => setFilter({ name: '', location: '' })}>
+                  Limpiar Filtros
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="notification is-light is-info is-flex is-justify-content-space-between">
+            <span>Total de Sucursales: <strong>{filteredBranches.length}</strong></span>
+            {filter.name || filter.location ? 
+              <span>Filtrando por: {filter.name ? `Nombre: "${filter.name}"` : ''} {filter.name && filter.location ? ' y ' : ''} {filter.location ? `Ubicación: "${filter.location}"` : ''}</span>
+              : <span>Mostrando todas las ramas</span>
+            }
           </div>
-        </div>
 
-        <div className="panel-block">
-          <h2 className="subtitle is-5 mb-0">Resultados ({filteredBranches.length})</h2>
-        </div>
-
-        <div className="panel-block">
           {loading ? (
-            <div className="is-flex is-justify-content-center is-align-items-center is-flex-grow-1 py-5">
+            <div className="is-flex is-justify-content-center is-align-items-center py-6">
               <span className="loader"></span>
             </div>
           ) : (
-            <table className="table is-hoverable is-fullwidth">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Nombre</th>
-                  <th>Ubicación</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tfoot>
-                <tr>
-                  <th>#</th>
-                  <th>Nombre</th>
-                  <th>Ubicación</th>
-                  <th>Acciones</th>
-                </tr>
-              </tfoot>
-              <tbody>
-                {filteredBranches.length === 0 ? (
+            <div className="table-container">
+              <table className="table is-hoverable is-fullwidth">
+                <thead>
                   <tr>
-                    <td colSpan={4} className="has-text-centered">No se encontraron ramas</td>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
                   </tr>
-                ) : (
-                  filteredBranches.map(branch => (
-                    <tr key={branch.id}>
-                      <th>{branch.id}</th>
-                      <td>
-                        <button className="button is-ghost p-0" onClick={() => handleViewBranch(branch.id)}>{branch.name}</button>
-                      </td>
-                      <td>{branch.location}</td>
-                      <td>
-                        <div className="buttons are-small">
-                          <button className="button is-info" onClick={() => handleViewBranch(branch.id)}><FontAwesomeIcon icon={faEye} /></button>
-                          <button className="button is-warning" onClick={() => handleEditBranch(branch.id)}><FontAwesomeIcon icon={faEdit} /></button>
-                          <button className="button is-danger" onClick={() => handleDelete(branch.id)}><FontAwesomeIcon icon={faTrash} /></button>
-                        </div>
+                </thead>
+                <tbody>
+                  {filteredBranches.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="has-text-centered py-5">
+                        <p className="has-text-grey">No se encontraron ramas</p>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredBranches.map(branch => (
+                      <tr key={branch.id}>
+                        <th>{branch.id}</th>
+                        <td>
+                          <button className="button is-ghost p-0 has-text-primary-dark" onClick={() => handleViewBranch(branch.id)}>
+                            {branch.name}
+                          </button>
+                        </td>
+                        <td>{branch.location}</td>
+                        <td>
+                          <div className="buttons are-small">
+                            <button className="button is-info is-rounded" onClick={() => handleViewBranch(branch.id)}>
+                              <FontAwesomeIcon icon={faEye} />
+                            </button>
+                            <button className="button is-warning is-rounded" onClick={() => handleEditBranch(branch.id)}>
+                              <FontAwesomeIcon icon={faEdit} />
+                            </button>
+                            <button className="button is-danger is-rounded" onClick={() => handleDelete(branch.id)}>
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </nav>
+      </div>
 
       {/* Modals */}
       {modal.type !== 'none' && (
@@ -241,7 +294,7 @@ const BranchPage = (_props: Props) => {
               {(modal.type === 'add' || modal.type === 'edit') && (
                 <BranchForm 
                   branch={modal.type === 'edit' ? modal.branch : undefined} 
-                  Managers={managers} // Pasamos los managers cargados
+                  Managers={managers}
                   onSubmit={handleFormSubmit} 
                   onCancel={closeModal} 
                 />
@@ -250,7 +303,7 @@ const BranchPage = (_props: Props) => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faImage, faTrash, faEdit, faPlus, faEye } from "@fortawesome/free-solid-svg-icons";
+import { faImage, faTrash, faEdit, faPlus, faEye, faBox, faTag, faFilter, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { Product, Category } from "my-types";
 import { useState, useEffect } from 'react';
 import { getAllProducts, deleteProduct, getProductById, createProduct, updateProduct } from "../Api/ProductAPI";
@@ -20,6 +20,7 @@ const ProductPage = (_props: Props) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [modal, setModal] = useState<ModalContent>({ type: 'none' });
   const [loading, setLoading] = useState<boolean>(true);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filter, setFilter] = useState({
     title: '',
     description: '',
@@ -31,7 +32,6 @@ const ProductPage = (_props: Props) => {
     setLoading(true);
     try {
       const data = await getAllProducts();
-      console.log("Datos recibidos de API:", data); // Para depuración
       
       if (data && Array.isArray(data)) {
         // Filter out any null or invalid products
@@ -52,7 +52,6 @@ const ProductPage = (_props: Props) => {
         });
         
         const uniqueCategories = Array.from(categoriesMap.values());
-        console.log("Categorías extraídas:", uniqueCategories); // Para depuración
         setCategories(uniqueCategories || []);
       } else {
         console.error("Los datos recibidos no son un array:", data);
@@ -123,7 +122,7 @@ const ProductPage = (_props: Props) => {
   
   // Delete product handler
   const handleDelete = async (id: number) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
       try {
         await deleteProduct(id);
         setProducts(products.filter(p => p.id !== id));
@@ -186,7 +185,6 @@ const ProductPage = (_props: Props) => {
         await createProduct({ ...productData, category });
         alert("Producto creado con éxito");
       } else if (modal.type === 'edit' && modal.product) {
-        // Don't manually set category to undefined here, your API function already handles this
         await updateProduct(modal.product.id, productData);
         alert("Producto actualizado con éxito");
       }
@@ -197,6 +195,7 @@ const ProductPage = (_props: Props) => {
       alert(`Error al ${modal.type === 'add' ? 'crear' : 'actualizar'} el producto`);
     }
   };
+  
   // Safe rendering helpers
   const renderProductTitle = (product: Product) => {
     return product && product.title ? product.title : 'Sin título';
@@ -225,209 +224,237 @@ const ProductPage = (_props: Props) => {
   };
 
   return (
-    <>
-      <nav className="panel">
-        <p className="panel-heading">Todos los Productos</p>
-        
-        {/* Add Product Button */}
-        <div className="panel-block">
-          <button 
-            className="button is-primary is-fullwidth"
-            onClick={handleAddProduct}
-          >
-            <span className="icon">
-              <FontAwesomeIcon icon={faPlus} />
+    <div className="fade-in">
+      <div className="card">
+        <header className="card-header">
+          <p className="card-header-title">
+            <span className="icon-background has-background-info mr-3">
+              <FontAwesomeIcon icon={faBox} size="lg" className="has-text-white" />
             </span>
-            <span>Añadir Nuevo Producto</span>
-          </button>
-        </div>
+            Gestión de Productos
+          </p>
+        </header>
         
-        {/* Filters */}
-        <div className="panel-block">
-          <h2 className="subtitle is-5 mb-0">Filtrar Productos</h2>
-        </div>
-        
-        <div className="panel-block">
-          <div className="field is-grouped is-flex-wrap-wrap is-flex-grow-1">
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Título</label>
-              <div className="control">
-                <input
-                  className="input"
-                  type="text"
-                  name="title"
-                  value={filter.title}
-                  onChange={handleFilterChange}
-                  placeholder="Filtrar por título"
-                />
-              </div>
+        <div className="card-content">
+          <div className="columns">
+            <div className="column">
+              <button 
+                className="button is-primary is-fullwidth" 
+                onClick={handleAddProduct}
+              >
+                <span className="icon">
+                  <FontAwesomeIcon icon={faPlus} />
+                </span>
+                <span>Añadir Nuevo Producto</span>
+              </button>
             </div>
-            
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Descripción</label>
-              <div className="control">
-                <input
-                  className="input"
-                  type="text"
-                  name="description"
-                  value={filter.description}
-                  onChange={handleFilterChange}
-                  placeholder="Filtrar por descripción"
-                />
-              </div>
+            <div className="column">
+              <button 
+                className="button is-info is-fullwidth" 
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <span className="icon">
+                  <FontAwesomeIcon icon={faFilter} />
+                </span>
+                <span>{showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}</span>
+              </button>
             </div>
-            
-            <div className="field is-flex-grow-1 mx-1">
-              <label className="label">Categoría</label>
-              <div className="control">
-                <div className="select is-fullwidth">
-                  <select 
-                    name="categoryId"
-                    value={filter.categoryId}
-                    onChange={handleFilterChange}
-                  >
-                    <option value={0}>Todas las categorías</option>
-                    {categories && categories.length > 0 && categories.map(cat => cat && (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+          </div>
+          
+          {showFilters && (
+            <div className="box mt-4 mb-5">
+              <h2 className="subtitle is-5 mb-3">Filtrar Productos</h2>
+              <div className="columns">
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Título</label>
+                    <div className="control has-icons-left">
+                      <input
+                        className="input"
+                        type="text"
+                        name="title"
+                        value={filter.title}
+                        onChange={handleFilterChange}
+                        placeholder="Filtrar por título"
+                      />
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faSearch} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Descripción</label>
+                    <div className="control has-icons-left">
+                      <input
+                        className="input"
+                        type="text"
+                        name="description"
+                        value={filter.description}
+                        onChange={handleFilterChange}
+                        placeholder="Filtrar por descripción"
+                      />
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faSearch} />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="column">
+                  <div className="field">
+                    <label className="label">Categoría</label>
+                    <div className="control has-icons-left">
+                      <div className="select is-fullwidth">
+                        <select 
+                          name="categoryId"
+                          value={filter.categoryId}
+                          onChange={handleFilterChange}
+                        >
+                          <option value={0}>Todas las categorías</option>
+                          {categories && categories.length > 0 && categories.map(cat => cat && (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <span className="icon is-small is-left">
+                        <FontAwesomeIcon icon={faTag} />
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              <div className="buttons mt-3">
+                <button 
+                  className="button is-info" 
+                  onClick={() => setFilteredProducts(products)}
+                >
+                  Aplicar Filtros
+                </button>
+                <button 
+                  className="button is-light" 
+                  onClick={resetFilters}
+                >
+                  Limpiar Filtros
+                </button>
+              </div>
             </div>
+          )}
+          
+          <div className="notification is-light is-info is-flex is-justify-content-space-between">
+            <span>Total de productos: <strong>{filteredProducts?.length || 0}</strong></span>
+            {(filter.title || filter.description || filter.categoryId > 0) ? (
+              <span>
+                Filtrando por: 
+                {filter.title ? ` Título: "${filter.title}"` : ''} 
+                {filter.title && (filter.description || filter.categoryId > 0) ? ' y ' : ''} 
+                {filter.description ? ` Descripción: "${filter.description}"` : ''}
+                {(filter.title || filter.description) && filter.categoryId > 0 ? ' y ' : ''} 
+                {filter.categoryId > 0 ? ` Categoría ID: ${filter.categoryId}` : ''}
+              </span>
+            ) : (
+              <span>Mostrando todos los productos</span>
+            )}
           </div>
-        </div>
-        
-        <div className="panel-block">
-          <div className="buttons">
-            <button 
-              className="button is-link"
-              onClick={() => setFilteredProducts(products)}
-            >
-              Aplicar Filtros
-            </button>
-            <button 
-              className="button is-light"
-              onClick={resetFilters}
-            >
-              Limpiar Filtros
-            </button>
-          </div>
-        </div>
-        
-        {/* Results */}
-        <div className="panel-block">
-          <h2 className="subtitle is-5 mb-0">
-            Resultados ({filteredProducts?.length || 0})
-          </h2>
-        </div>
-        
-        <div className="panel-block">
+          
           {loading ? (
-            <div className="is-flex is-justify-content-center is-align-items-center is-flex-grow-1 py-5">
+            <div className="is-flex is-justify-content-center is-align-items-center py-6">
               <span className="loader"></span>
             </div>
           ) : (
-            <table className="table is-hoverable is-fullwidth">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Image</th>
-                  <th>Title</th>
-                  <th>Description</th>
-                  <th>Price</th>
-                  <th>
-                    <abbr title="Discount Percentage">Disc.%</abbr>
-                  </th>
-                  <th>Rating</th>
-                  <th>Stock</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tfoot>
-                <tr>
-                  <th>#</th>
-                  <th>Image</th>
-                  <th>Title</th>
-                  <th>Description</th>
-                  <th>Price</th>
-                  <th>
-                    <abbr title="Discount Percentage">Disc.%</abbr>
-                  </th>
-                  <th>Rating</th>
-                  <th>Stock</th>
-                  <th>Acciones</th>
-                </tr>
-              </tfoot>
-              <tbody>
-                {!filteredProducts || filteredProducts.length === 0 ? (
+            <div className="table-container">
+              <table className="table is-hoverable is-fullwidth">
+                <thead>
                   <tr>
-                    <td colSpan={9} className="has-text-centered">
-                      No se encontraron productos
-                    </td>
+                    <th>#</th>
+                    <th>Image</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>
+                      <abbr title="Discount Percentage">Disc.%</abbr>
+                    </th>
+                    <th>Rating</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
                   </tr>
-                ) : (
-                  filteredProducts.map((product) => {
-                    // Safety check for null/undefined product
-                    if (!product) return null;
-                    
-                    return (
-                      <tr key={product.id}>
-                        <th>{product.id || 'N/A'}</th>
-                        <td>
-                          <FontAwesomeIcon icon={faImage} />
-                        </td>
-                        <td>
-                          <button 
-                            className="button is-ghost p-0"
-                            onClick={() => product.id && handleViewProduct(product.id)}
-                          >
-                            {renderProductTitle(product)}
-                          </button>
-                        </td>
-                        <td>{renderProductDescription(product)}</td>
-                        <td>{renderPrice(product)}</td>
-                        <td>{renderNumericValue(product.discountPercentage, 0, '%')}</td>
-                        <td>{renderNumericValue(product.rating, 0, '/5')}</td>
-                        <td>{renderNumericValue(product.stock)}</td>
-                        <td>
-                          <div className="buttons are-small">
-                            <button
-                              className="button is-info"
+                </thead>
+                <tbody>
+                  {!filteredProducts || filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="has-text-centered py-5">
+                        <p className="has-text-grey">No se encontraron productos</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProducts.map((product) => {
+                      // Safety check for null/undefined product
+                      if (!product) return null;
+                      
+                      return (
+                        <tr key={product.id}>
+                          <th>{product.id || 'N/A'}</th>
+                          <td>
+                            <span className="icon has-text-info">
+                              <FontAwesomeIcon icon={faImage} />
+                            </span>
+                          </td>
+                          <td>
+                            <button 
+                              className="button is-ghost p-0 has-text-info-dark"
                               onClick={() => product.id && handleViewProduct(product.id)}
-                              title="Ver detalles"
-                              disabled={!product.id}
                             >
-                              <FontAwesomeIcon icon={faEye} />
+                              {renderProductTitle(product)}
                             </button>
-                            <button
-                              className="button is-warning"
-                              onClick={() => product.id && handleEditProduct(product.id)}
-                              title="Editar producto"
-                              disabled={!product.id}
-                            >
-                              <FontAwesomeIcon icon={faEdit} />
-                            </button>
-                            <button
-                              className="button is-danger"
-                              onClick={() => product.id && handleDelete(product.id)}
-                              title="Eliminar producto"
-                              disabled={!product.id}
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          </td>
+                          <td>{renderProductDescription(product)}</td>
+                          <td className="has-text-weight-bold">{renderPrice(product)}</td>
+                          <td>{renderNumericValue(product.discountPercentage, 0, '%')}</td>
+                          <td>{renderNumericValue(product.rating, 0, '/5')}</td>
+                          <td>{renderNumericValue(product.stock)}</td>
+                          <td>
+                            <div className="buttons are-small">
+                              <button
+                                className="button is-info is-rounded"
+                                onClick={() => product.id && handleViewProduct(product.id)}
+                                title="Ver detalles"
+                                disabled={!product.id}
+                              >
+                                <FontAwesomeIcon icon={faEye} />
+                              </button>
+                              <button
+                                className="button is-warning is-rounded"
+                                onClick={() => product.id && handleEditProduct(product.id)}
+                                title="Editar producto"
+                                disabled={!product.id}
+                              >
+                                <FontAwesomeIcon icon={faEdit} />
+                              </button>
+                              <button
+                                className="button is-danger is-rounded"
+                                onClick={() => product.id && handleDelete(product.id)}
+                                title="Eliminar producto"
+                                disabled={!product.id}
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-      </nav>
+      </div>
       
       {/* Modals */}
       {modal.type !== 'none' && (
@@ -465,7 +492,7 @@ const ProductPage = (_props: Props) => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

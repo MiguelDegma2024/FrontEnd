@@ -12,6 +12,7 @@ import {
 import Chart from 'chart.js/auto';
 import { Link } from 'react-router-dom';
 
+
 interface StatCardProps {
   title: string;
   value: string | number;

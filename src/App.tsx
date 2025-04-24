@@ -1,4 +1,5 @@
-import { Outlet } from "react-router";
+import React, { useEffect, useState } from "react";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import "./App.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,19 +9,35 @@ import {
   faUsers,
   faShoppingCart,
   faTruck,
-  faUserCircle
+  faUserCircle,
+  faSignOutAlt
 } from "@fortawesome/free-solid-svg-icons";
-import { Link, useLocation, Routes, Route } from "react-router-dom";
-import Dashboard from "./components/Dashboard"; // Import the Dashboard component
+import { getCurrentUser, logout } from "./Api/AuthAPI";
+import { User } from "my-types";
 
-interface Props {}
-
-const App = (_props: Props) => {
+const App: React.FC = () => {
   const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Cargar usuario actual del localStorage al iniciar
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+    }
+  }, []);
   
   // Función para determinar si un enlace está activo
   const isActive = (path: string) => {
-    return location.pathname === path ? "has-text-primary has-text-weight-bold" : "";
+    const currentPath = location.pathname === "/" ? "/dashboard" : location.pathname;
+    return currentPath === path ? "has-text-primary has-text-weight-bold" : "";
+  };
+
+  const handleLogout = () => {
+    logout();
+    setCurrentUser(null);
+    // Redirigir al login
+    window.location.href = "/login";
   };
 
   return (
@@ -28,11 +45,11 @@ const App = (_props: Props) => {
       {/* Sidebar Navigation */}
       <aside className="menu sidebar">
         <div className="sidebar-header">
-          <p className="menu-label">Mi Tienda</p>
+          <p className="menu-label">NeoPharma</p>
         </div>
         <ul className="menu-list">
           <li>
-            <Link to="/" className={isActive("/")}>
+            <Link to="/dashboard" className={isActive("/dashboard")}>
               <FontAwesomeIcon icon={faHome} className="mr-2" /> Dashboard
             </Link>
           </li>
@@ -42,7 +59,7 @@ const App = (_props: Props) => {
             </Link>
           </li>
           <li>
-            <Link to="/branches" className={isActive("/stores")}>
+            <Link to="/branches" className={isActive("/branches")}>
               <FontAwesomeIcon icon={faStore} className="mr-2" /> Sucursales
             </Link>
           </li>
@@ -66,20 +83,19 @@ const App = (_props: Props) => {
           <div className="user-profile">
             <FontAwesomeIcon icon={faUserCircle} size="2x" className="mr-2" />
             <div>
-              <p className="has-text-weight-bold">Usuario</p>
-              <p className="is-size-7">Administrador</p>
+              <p className="has-text-weight-bold">{currentUser?.name || 'Usuario'}</p>
+              <p className="is-size-7">{currentUser?.role === 'admin' ? 'Administrador' : 'Usuario'}</p>
             </div>
           </div>
+          <button onClick={handleLogout} className="button is-small is-danger is-light mt-2">
+            <FontAwesomeIcon icon={faSignOutAlt} className="mr-1" /> Cerrar Sesión
+          </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main className="main-content">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          {/* Add other routes here */}
-          <Route path="*" element={<Outlet />} />
-        </Routes>
+        <Outlet />
       </main>
     </div>
   );
