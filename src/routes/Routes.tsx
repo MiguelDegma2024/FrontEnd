@@ -8,6 +8,7 @@ import UserPage from "../pages/UserPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import PrivateRoute from "../components/PrivateRoute";
+import SalePage from "../pages/SalePage";
 
 const router = createBrowserRouter([
   {
@@ -20,7 +21,7 @@ const router = createBrowserRouter([
       { path: "products", element: <ProductPage /> },
       { path: "branches", element: <BranchPage /> },
       { path: "users", element: <UserPage /> },
-      { path: "orders", element: <div>Página de órdenes</div> },
+      { path: "orders", element: <SalePage /> },
       { path: "shipping", element: <div>Página de envíos</div> }
     ]
   },

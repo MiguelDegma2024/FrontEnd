@@ -1,4 +1,21 @@
 declare module "my-types" {
+
+  export interface Sale {
+    id: number;
+    userId: number;
+    productId: number;
+    quantity: number;
+    totalPrice: number;
+    createdAt?: Date;
+    updatedAt?: Date;
+  }
+
+  export interface SaleSummary {
+    productId: number;
+    totalSales: number;
+    totalRevenue: number;
+  }
+
     export interface Category {
       id: number;
       name: string;
